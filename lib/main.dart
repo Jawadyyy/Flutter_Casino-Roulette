@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'spin.dart';
-//import 'example.dart';
 
 void main() {
   runApp(const MyApp());
