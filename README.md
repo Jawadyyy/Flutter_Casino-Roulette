@@ -51,7 +51,7 @@ flutter run
 - **Betting**: Place your bets before spinning the wheel (if implemented).
 
 # Screenshots
-![Image Description](https://imgur.com/wNTtgIc)
+![Image Description](https://github.com/Jawadyyy/Flutter_Casino-Roulette/tree/main/images/game.PNG)
 
 # Contributing
 Contributions are welcome! Please fork this repository, create a new branch for your feature or bugfix, and submit a pull request.
