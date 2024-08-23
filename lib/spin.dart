@@ -119,20 +119,21 @@ class _SpinWheelState extends State<SpinWheel> {
 
       if (totalPayout > 0) {
         setState(() {
-          money += totalPayout - (betAmount * selectedBets.length);
+          money += totalPayout;
         });
-        _showResultDialog(context, "Congratulations!", "You won \$${totalPayout - (betAmount * selectedBets.length)}");
+        _showResultDialog(context, "Congratulations!", "You won \$$totalPayout");
       } else {
         setState(() {
-          money -= betAmount * selectedBets.length;
+          money -= betAmount;
         });
-        _showResultDialog(context, "Better Luck Next Time!", "You lost \$${betAmount * selectedBets.length}");
+        _showResultDialog(context, "Better Luck Next Time!", "You lost \$$betAmount");
       }
     }
 
     setState(() {
       selectedBets.clear();
       betAmountController.clear();
+      startBettingPhase();
     });
   }
 
@@ -149,16 +150,18 @@ class _SpinWheelState extends State<SpinWheel> {
           child: Stack(
             children: <Widget>[
               Container(
-                padding: const EdgeInsets.only(
-                  left: 20,
-                  top: 20,
-                  right: 20,
-                  bottom: 20,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                 margin: const EdgeInsets.only(top: 45),
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
-                  color: Colors.white,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white,
+                      Colors.grey.shade200
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
                     BoxShadow(
@@ -174,19 +177,23 @@ class _SpinWheelState extends State<SpinWheel> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
                       ),
                     ),
                     const SizedBox(height: 15),
                     Text(
                       content,
-                      style: const TextStyle(fontSize: 18),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 25),
                     Align(
-                      alignment: Alignment.bottomRight,
+                      alignment: Alignment.bottomCenter,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -196,7 +203,7 @@ class _SpinWheelState extends State<SpinWheel> {
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           backgroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
                         child: const Text(
                           "OK",
@@ -218,11 +225,100 @@ class _SpinWheelState extends State<SpinWheel> {
     );
   }
 
-  void startTimer() {
+  void _showErrorDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Stack(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                margin: const EdgeInsets.only(top: 45),
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white,
+                      Colors.grey.shade200
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 10),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      content,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 25),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          backgroundColor: Colors.redAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        ),
+                        child: const Text(
+                          "OK",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void startBettingPhase() {
     setState(() {
       isLocked = false;
       timeLeft = 30;
     });
+
     countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (timeLeft > 0) {
@@ -237,9 +333,14 @@ class _SpinWheelState extends State<SpinWheel> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    startBettingPhase();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
     final wheelSize = screenWidth * 0.8;
     final adjustedWheelSize = screenWidth > 650 ? 520.0 : wheelSize;
     final gridItemSize = screenWidth * 0.2;
@@ -367,52 +468,32 @@ class _SpinWheelState extends State<SpinWheel> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        if (timeLeft > 0 && !isLocked)
-                          Text(
-                            'Time left: $timeLeft seconds',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                        if (!isLocked)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: Colors.redAccent,
+                                width: 2.0,
+                              ),
+                              borderRadius: BorderRadius.circular(12.0),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 4),
+                                  blurRadius: 10.0,
+                                ),
+                              ],
                             ),
-                          ),
-                        const SizedBox(height: 20),
-                        if (timeLeft == 30)
-                          GestureDetector(
-                            onTap: () {
-                              startTimer();
-                            },
-                            child: Container(
-                              height: constraints.maxHeight * 0.07,
-                              width: constraints.maxWidth * 0.4,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Colors.redAccent,
-                                    Colors.orangeAccent
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 4),
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                                borderRadius: BorderRadius.circular(10),
+                            child: Text(
+                              'Betting Phase: $timeLeft seconds',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.05,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
-                              child: Center(
-                                child: Text(
-                                  "S T A R T",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: screenWidth * 0.05,
-                                  ),
-                                ),
-                              ),
+                              textAlign: TextAlign.center, // Center the text inside the container
                             ),
                           ),
                         const SizedBox(height: 20),
@@ -472,39 +553,79 @@ class _SpinWheelState extends State<SpinWheel> {
                                 onTap: isLocked
                                     ? null
                                     : () {
+                                        int betAmount = int.tryParse(betAmountController.text) ?? 0;
+                                        if (betAmount <= 0) {
+                                          _showErrorDialog(
+                                            context,
+                                            "Invalid Bet Amount",
+                                            "Please enter a valid bet amount.",
+                                          );
+                                          return;
+                                        } else if (betAmount > money) {
+                                          _showErrorDialog(
+                                            context,
+                                            "Insufficient Funds",
+                                            "You do not have enough money to place this bet.",
+                                          );
+                                          return;
+                                        }
+
                                         setState(() {
                                           if (selectedBets.contains(label)) {
                                             selectedBets.remove(label);
                                           } else {
                                             if (label == '0') {
                                               selectedBets.clear();
+                                              selectedBets.add(label);
                                             } else {
-                                              if (label == 'Odd' && selectedBets.contains('Even')) {
-                                                selectedBets.remove('Even');
-                                              } else if (label == 'Even' && selectedBets.contains('Odd')) {
-                                                selectedBets.remove('Odd');
-                                              } else if (label == 'Red' && selectedBets.contains('Black')) {
-                                                selectedBets.remove('Black');
-                                              } else if (label == 'Black' && selectedBets.contains('Red')) {
-                                                selectedBets.remove('Red');
-                                              }
-
-                                              if (label == '1-12' || label == '13-24' || label == '25-36') {
-                                                List<String> selectedRangeBets = selectedBets.where((bet) => bet == '1-12' || bet == '13-24' || bet == '25-36').toList();
-
-                                                if (selectedRangeBets.length == 2) {
-                                                  selectedBets.remove(selectedRangeBets[0]);
+                                              if (selectedBets.contains('0')) {
+                                                _showErrorDialog(
+                                                  context,
+                                                  "Invalid Selection",
+                                                  "You cannot select other options when '0' is selected.",
+                                                );
+                                              } else {
+                                                if (label == 'Odd' && selectedBets.contains('Even')) {
+                                                  selectedBets.remove('Even');
+                                                } else if (label == 'Even' && selectedBets.contains('Odd')) {
+                                                  selectedBets.remove('Odd');
+                                                } else if (label == 'Red' && selectedBets.contains('Black')) {
+                                                  selectedBets.remove('Black');
+                                                } else if (label == 'Black' && selectedBets.contains('Red')) {
+                                                  selectedBets.remove('Red');
                                                 }
+
+                                                if (label == '1-12' || label == '13-24' || label == '25-36') {
+                                                  List<String> selectedRangeBets = selectedBets.where((bet) => bet == '1-12' || bet == '13-24' || bet == '25-36').toList();
+
+                                                  if (selectedRangeBets.length == 2) {
+                                                    selectedBets.remove(selectedRangeBets[0]);
+                                                  }
+                                                }
+
+                                                selectedBets.add(label);
                                               }
                                             }
-
-                                            selectedBets.add(label);
                                           }
                                         });
                                       },
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: selectedBets.contains(label) ? Colors.redAccent : Colors.grey.shade200,
+                                    gradient: selectedBets.contains(label)
+                                        ? const LinearGradient(
+                                            colors: [
+                                              Colors.redAccent,
+                                              Colors.orangeAccent,
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          )
+                                        : const LinearGradient(
+                                            colors: [
+                                              Colors.white,
+                                              Colors.grey,
+                                            ],
+                                          ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                       color: selectedBets.contains(label) ? Colors.black : Colors.grey,
@@ -552,21 +673,43 @@ class _SpinWheelState extends State<SpinWheel> {
                             controller: betAmountController,
                             keyboardType: TextInputType.number,
                             enabled: !isLocked,
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.05,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                            ),
                             decoration: InputDecoration(
-                                prefixIcon: Image.asset(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Image.asset(
                                   'images/coin.png',
                                   width: screenWidth * 0.08,
                                   height: screenWidth * 0.08,
+                                  color: Colors.redAccent,
                                 ),
-                                hintText: 'Enter your bet amount',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.black),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(color: Colors.black),
-                                  borderRadius: BorderRadius.circular(8),
-                                )),
+                              ),
+                              hintText: 'Enter your bet amount',
+                              hintStyle: TextStyle(
+                                fontSize: screenWidth * 0.045,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade100,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 40),
